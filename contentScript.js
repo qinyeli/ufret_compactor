@@ -1,23 +1,37 @@
 console.log("Executing Sindy's ufret plugin");
 
-var SHEET_ID = "blyodnijb"
-var LINE_CLASS = "atfolhyds"
+var SHEET_ID = "my-chord-data"
 var CHORD_CLASS = "krijcheug"
 var LYRIC_CLASS = "mejiowvnz"
 
+function isNodeToKeep(node) {
+  return (node.localName === "style"
+    && node.innerHTML.includes("musical-sheet"));
+}
+
 function removeAllSiblings(node) {
   var parent = node.parentNode;
-  while (node.previousSibling) {
-    parent.removeChild(node.previousSibling);
+  var curr = node;
+  while (curr.previousSibling) {
+    if (isNodeToKeep(curr.previousSibling)) {
+      curr = curr.previousSibling;
+    } else {
+      parent.removeChild(curr.previousSibling);
+    }
   }
-  while (node.nextSibling) {
-    parent.removeChild(node.nextSibling);
+  curr = node;
+  while (curr.nextSibling) {
+    if (isNodeToKeep(curr.nextSibling)) {
+      curr = curr.nextSibling;
+    } else {
+      parent.removeChild(curr.nextSibling);
+    }
   }
 }
 
 function removeAllAncestorsSiblings(node) {
-  var curr = node;
-  while (curr.parentNode) {
+  var curr = node.parentNode;
+  while (curr.parentNode.localName !== "html") {
     removeAllSiblings(curr);
     curr = curr.parentNode;
   }
@@ -25,31 +39,5 @@ function removeAllAncestorsSiblings(node) {
 
 var sheet = document.getElementById(SHEET_ID);
 removeAllAncestorsSiblings(sheet);
-while (sheet.childNodes[0].className !== LINE_CLASS) {
-  sheet.removeChild(sheet.childNodes[0]);
-}
-sheet.style['column-count'] = 4;
-
-var lines = sheet.getElementsByClassName(LINE_CLASS);
-var prevHasLyrics = false;
-var currHasLyrics = false;
-for (var i = 0; i < lines.length; i++) {
-  var line = lines[i];
-
-  var lyrics = line.getElementsByClassName(LYRIC_CLASS);
-  for (var j = 0; j < lyrics.length; j++) {
-    var lyric = lyrics[j];
-    if (lyric.innerText !== "　" && lyric.innerText !== "") {
-      currHasLyrics = true;
-    }
-  }
-
-  line.style.marginTop="0em";
-  line.style.marginBottom="0em";
-  if (!currHasLyrics) {
-    line.style["line-height"] = "0px";
-  }
-
-  prevHasLyrics = currHasLyrics;
-  currHasLyrics = false;
-}
+removeAllSiblings(sheet);
+sheet.style['column-count'] = 3;
